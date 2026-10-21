@@ -257,25 +257,21 @@ with tab_sistema:
 
 
 
+
 with tab_config:
-    ##st.subheader("Configuração e métodos")
     st.markdown(
-    '<h2 style="text-align: center;">Configuração e métodos</h2>',
-    unsafe_allow_html=True
-)
-    #st.write(
-    #    "O mismatch é a diferença entre a potência especificada no enunciado e a potência "
-    #    "calculada usando as tensões iniciais. Os métodos iterativos tentam reduzir essa diferença."
-    #)
-    
+        '<h2 style="text-align: center;">Configuração e métodos</h2>',
+        unsafe_allow_html=True
+    )
+
     st.latex(r"\Delta P_i = P_i^{\mathrm{esp}} - P_i^{\mathrm{calc}}")
     st.latex(r"\Delta Q_i = Q_i^{\mathrm{esp}} - Q_i^{\mathrm{calc}}")
+
     with st.container(border=True):
-        st.caption("MAIOR MISMATCH INICIAL")
         st.metric("Diferença máxima de potência", f"{erro0:.6f} p.u.")
         
-    
     linhas_mis = []
+
     for i in range(N_BARRAS):
         tipo = TIPOS_BARRA[i]
         linhas_mis.append({
@@ -320,8 +316,7 @@ with tab_resultados:
         """,
         unsafe_allow_html=True
     )
-    st.subheader("Resultados e análise")
-    st.caption("Veja primeiro a convergência e depois explore tensões, potências e fluxos.")
+    
     if not dados:
         st.info("Configure a simulação na barra lateral e clique em «Calcular fluxo de potência».")
     else:
