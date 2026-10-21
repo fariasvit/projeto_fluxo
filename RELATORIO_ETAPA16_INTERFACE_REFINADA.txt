@@ -1,0 +1,17 @@
+ETAPA 16 — REFINAMENTO DA INTERFACE
+
+Alterações:
+1. Configurações e chutes iniciais movidos para a barra lateral.
+2. Tolerâncias limitadas a 1e-04, 1e-06 e 1e-08 p.u.
+3. Controles de limite de iterações removidos; limites internos fixos em 5000
+   para Jacobi/Seidel e 100 para Newton-Raphson.
+4. Três cenários predefinidos mantidos (Flat Start, Chute alternativo A e B),
+   com opção adicional Personalizado.
+5. Seção de mismatch simplificada, explicativa e com traços para grandezas não aplicáveis.
+6. Resultados reorganizados em resumo e subtelas para tensões/potências,
+   convergência, fluxos nas linhas e matriz Ybus.
+7. Preservados os módulos de cálculo e as três abas principais.
+
+Validação:
+- Sintaxe de app.py validada.
+- A suíte de testes foi executada durante a geração do pacote.

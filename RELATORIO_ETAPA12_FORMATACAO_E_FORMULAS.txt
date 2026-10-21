@@ -1,0 +1,9 @@
+ETAPA 12 — FORMATAÇÃO DA TABELA DE BARRAS
+
+Alterações:
+- Campos ausentes ou não especificados são apresentados como hífen (-), em vez de None/nan.
+- A legenda textual de potências líquidas foi substituída pelas fórmulas:
+  P_i = P_g,i - P_d,i
+  Q_i = Q_g,i - Q_d,i
+- A explicação sobre Slack e PV foi mantida em texto curto.
+- Nenhuma alteração foi feita nos dados elétricos ou nos algoritmos.

@@ -1,0 +1,14 @@
+ETAPA 15 — SIMPLIFICAÇÃO DA INTERFACE
+
+Objetivo:
+Reduzir a navegação de cinco abas para três, sem remover funcionalidades.
+
+Nova organização:
+1. Sistema elétrico — diagrama, tabelas das barras e linhas, matriz Ybus.
+2. Configuração e métodos — mismatch inicial, fórmulas e explicações de Jacobi,
+   Seidel e Newton-Raphson, resumo/histórico de convergência.
+3. Resultados e análise — tensões, potências, comparação com a referência e fluxos.
+
+Os controles de simulação permanecem no painel superior, antes das abas, para
+facilitar a configuração e execução. Os cálculos e módulos dos algoritmos foram
+mantidos; a mudança é de organização da interface.

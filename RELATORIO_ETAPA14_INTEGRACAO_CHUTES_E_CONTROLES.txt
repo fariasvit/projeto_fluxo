@@ -1,0 +1,23 @@
+ETAPA 14 — INTEGRAÇÃO DOS CHUTES INICIAIS E CONTROLES NUMÉRICOS
+
+Base: Etapa 13 — correção de hifens e tabelas da interface.
+
+Alterações incorporadas à aplicação oficial:
+- Seletor de cenários: Flat Start, Chute alternativo A, Chute alternativo B e Personalizado.
+- Os cenários preenchem os campos editáveis de módulos e ângulos iniciais.
+- Preservadas as cinco abas originais: Sistema, Matriz Ybus, Chutes e mismatch, Métodos e Resultados.
+- Mantidos os dados fixos do enunciado e a convenção Bsh/2 em cada extremidade.
+- Campo explícito de limite de iterações para Gauss-Jacobi/Gauss-Seidel.
+- Campo separado para limite de iterações do Newton-Raphson.
+- Tabela de diferença máxima das tensões complexas em relação à solução de referência Newton-Raphson, quando este converge.
+- Mantidas tabelas de dados das barras e linhas, equações, histórico de convergência e fluxos.
+
+Testes executados nesta versão:
+- `python -m pytest -q`: 29 testes aprovados.
+- `python -m py_compile app.py`: sintaxe Python validada.
+
+Execução:
+`python -m pip install -r requirements.txt`
+`python -m streamlit run app.py`
+
+Observação: os testes automatizados validam os módulos de cálculo existentes. A renderização visual deve ser conferida no ambiente Streamlit local.
