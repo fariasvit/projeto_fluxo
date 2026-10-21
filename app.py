@@ -318,7 +318,7 @@ with tab_resultados:
     )
     
     if not dados:
-        st.info("Configure a simulação na barra lateral e clique em «Calcular fluxo de potência».")
+        st.info("Configure a simulação na barra lateral e clique em (Calcular fluxo de potência).")
     else:
         estados_validos = {n: e for n, e in dados["estados"].items() if "historico" in e}
         resumo_df = pd.DataFrame(dados["resumo"])
@@ -334,8 +334,7 @@ with tab_resultados:
                 st.success("Todos os métodos selecionados atingiram o critério de convergência.")
 
         if estados_validos:
-            result_tabs = st.tabs(["Tensões e potências", "Convergência", "Fluxos nas linhas", "Matriz Ybus"])
-            with result_tabs[0]:
+            
                 metodo = st.selectbox("Método para consultar os resultados", list(estados_validos.keys()), key="metodo_resultados")
                 estado = estados_validos[metodo]
                 V, P, Q = estado["V"], estado["P"], estado["Q"]
@@ -365,7 +364,6 @@ with tab_resultados:
                         st.dataframe(df_diff.style.format({"Maior diferença de tensão complexa (p.u.)": "{:.3e}"}),
                                      use_container_width=True, hide_index=True)
 
-            with result_tabs[1]:
                 st.markdown("#### Evolução do mismatch")
                 st.caption("Escala logarítmica para facilitar a visualização da redução do erro.")
                 import plotly.graph_objects as go
@@ -381,38 +379,9 @@ with tab_resultados:
                     yaxis_type="log", height=420, legend_title="Método",
                     margin=dict(l=20, r=20, t=35, b=20),
                 )
-                st.plotly_chart(fig, use_container_width=True)
-                metodo_hist = st.selectbox("Consultar histórico de qual método?", list(estados_validos.keys()), key="metodo_historico")
-                hist = estados_validos[metodo_hist]["historico"]
-                df_hist = pd.DataFrame({"Iteração": np.arange(1, len(hist) + 1), "Mismatch máximo (p.u.)": hist})
-                st.dataframe(df_hist.style.format({"Mismatch máximo (p.u.)": "{:.3e}"}),
-                             use_container_width=True, hide_index=True, height=260)
-
-            with result_tabs[2]:
-                metodo_fluxo = st.selectbox("Método para consultar os fluxos", list(estados_validos.keys()), key="metodo_fluxos")
-                estado_fluxo = estados_validos[metodo_fluxo]
-                df_fluxos = pd.DataFrame(calcular_fluxos_linhas(estado_fluxo["V"]))
-                st.dataframe(df_fluxos.style.format({
-                    "P_de_para_pu": "{:.6f}", "Q_de_para_pu": "{:.6f}",
-                    "P_para_de_pu": "{:.6f}", "Q_para_de_pu": "{:.6f}",
-                    "P_perdas_pu": "{:.3e}", "Q_soma_pu": "{:.6f}",
-                }), use_container_width=True, hide_index=True)
-                st.download_button("Baixar fluxos das linhas (CSV)", df_fluxos.to_csv(index=False).encode("utf-8-sig"),
-                                   "fluxos_linhas.csv", "text/csv", key="download_fluxos")
-
-            with result_tabs[3]:
-                df_y_result = pd.DataFrame(
-                    [[f"{Ybus[i,j].real:.5f}{Ybus[i,j].imag:+.5f}j" for j in range(N_BARRAS)]
-                     for i in range(N_BARRAS)],
-                    index=[f"Barra {i}" for i in range(1, N_BARRAS + 1)],
-                    columns=[str(i) for i in range(1, N_BARRAS + 1)],
-                )
-                st.dataframe(df_y_result, use_container_width=True)
-                st.caption("A matriz Ybus é a mesma para todos os métodos, pois os dados da rede permanecem fixos.")
 
         for nome, estado in dados["estados"].items():
             if "erro_execucao" in estado:
                 st.error(f"{nome}: {estado['erro_execucao']}")
 
 st.divider()
-
