@@ -308,80 +308,164 @@ with tab_config:
             st.write("Calcula correções para os ângulos e módulos usando a Jacobiana.")
             st.latex(r"J\,\Delta x=\begin{bmatrix}\Delta P\\\Delta Q\end{bmatrix}")
 
+
+
 with tab_resultados:
     st.markdown(
         """
         <h2 style="text-align: center;">Resultados e análise</h2>
-        
         """,
         unsafe_allow_html=True
     )
-    
+
     if not dados:
-        st.info("Configure a simulação na barra lateral e clique em (Calcular fluxo de potência).")
+        st.info(
+            "Configure a simulação na barra lateral e clique em "
+            "Calcular fluxo de potência."
+        )
+
     else:
-        estados_validos = {n: e for n, e in dados["estados"].items() if "historico" in e}
+        estados_validos = {
+            nome: estado
+            for nome, estado in dados["estados"].items()
+            if "historico" in estado
+        }
+
+        # ==================================================
+        # 1. RESUMO DA CONVERGÊNCIA
+        # ==================================================
         resumo_df = pd.DataFrame(dados["resumo"])
+
         if not resumo_df.empty:
             st.markdown("#### Resumo da convergência")
+
             st.dataframe(
-                resumo_df.style.format({"Mismatch máximo (p.u.)": "{:.3e}"}),
-                use_container_width=True, hide_index=True
+                resumo_df.style.format({
+                    "Mismatch máximo (p.u.)": "{:.3e}"
+                }),
+                use_container_width=True,
+                hide_index=True
             )
-            if any(row.get("Convergiu") != "Sim" for row in dados["resumo"]):
-                st.warning("Pelo menos um método não atingiu o critério de convergência. Confira os detalhes abaixo.")
+
+            if any(
+                row.get("Convergiu") != "Sim"
+                for row in dados["resumo"]
+            ):
+                st.warning(
+                    "Pelo menos um método não atingiu o critério "
+                    "de convergência."
+                )
             else:
-                st.success("Todos os métodos selecionados atingiram o critério de convergência.")
-
-        if estados_validos:
-            
-                metodo = st.selectbox("Método para consultar os resultados", list(estados_validos.keys()), key="metodo_resultados")
-                estado = estados_validos[metodo]
-                V, P, Q = estado["V"], estado["P"], estado["Q"]
-                m1, m2, m3 = st.columns(3)
-                m1.metric("Barras calculadas", N_BARRAS)
-                m2.metric("Maior módulo de tensão", f"{np.max(np.abs(V)):.4f} p.u.")
-                m3.metric("Menor módulo de tensão", f"{np.min(np.abs(V)):.4f} p.u.")
-                df_v = pd.DataFrame([{
-                    "Barra": i + 1, "Tipo": TIPOS_BARRA[i], "|V| (p.u.)": abs(V[i]),
-                    "Ângulo (°)": np.degrees(np.angle(V[i])), "P calculada (p.u.)": P[i],
-                    "Q calculada (p.u.)": Q[i], "P (MW)": P[i] * BASE_MVA, "Q (MVAr)": Q[i] * BASE_MVA,
-                } for i in range(N_BARRAS)])
-                st.dataframe(df_v.style.format({
-                    "|V| (p.u.)": "{:.5f}", "Ângulo (°)": "{:.4f}",
-                    "P calculada (p.u.)": "{:.5f}", "Q calculada (p.u.)": "{:.5f}",
-                    "P (MW)": "{:.2f}", "Q (MVAr)": "{:.2f}",
-                }), use_container_width=True, hide_index=True)
-                st.download_button("Baixar resultados das barras (CSV)", df_v.to_csv(index=False).encode("utf-8-sig"),
-                                   "resultados_barras.csv", "text/csv", key="download_barras")
-                if "Newton-Raphson" in estados_validos and estados_validos["Newton-Raphson"].get("convergiu"):
-                    with st.expander("Diferença em relação à solução de referência"):
-                        vref = estados_validos["Newton-Raphson"]["V"]
-                        df_diff = pd.DataFrame([{
-                            "Método": nome,
-                            "Maior diferença de tensão complexa (p.u.)": float(np.max(np.abs(e["V"] - vref)))
-                        } for nome, e in estados_validos.items()])
-                        st.dataframe(df_diff.style.format({"Maior diferença de tensão complexa (p.u.)": "{:.3e}"}),
-                                     use_container_width=True, hide_index=True)
-
-                st.markdown("#### Evolução do mismatch")
-                st.caption("Escala logarítmica para facilitar a visualização da redução do erro.")
-                import plotly.graph_objects as go
-                fig = go.Figure()
-                for nome, estado in estados_validos.items():
-                    hist = np.maximum(np.asarray(estado["historico"], dtype=float), 1e-16)
-                    if len(hist):
-                        fig.add_trace(go.Scatter(x=np.arange(1, len(hist) + 1), y=hist, mode="lines", name=nome))
-                fig.add_hline(y=float(dados["tolerancia"]), line_dash="dash",
-                              annotation_text=f"Tolerância = {dados['tolerancia']:.0e}")
-                fig.update_layout(
-                    xaxis_title="Iteração", yaxis_title="Mismatch máximo de potência (p.u.)",
-                    yaxis_type="log", height=420, legend_title="Método",
-                    margin=dict(l=20, r=20, t=35, b=20),
+                st.success(
+                    "Todos os métodos selecionados atingiram "
+                    "o critério de convergência."
                 )
 
+        # ==================================================
+        # 2. GRÁFICO DE CONVERGÊNCIA
+        # ==================================================
+        if estados_validos:
+            st.markdown("#### Evolução do mismatch")
+
+            st.caption(
+                "Comparação da redução do erro ao longo das iterações. "
+                "A linha tracejada representa a tolerância configurada."
+            )
+
+            import plotly.graph_objects as go
+
+            fig = go.Figure()
+
+            for nome, estado in estados_validos.items():
+                hist = np.maximum(
+                    np.asarray(estado["historico"], dtype=float),
+                    1e-16
+                )
+
+                if len(hist):
+                    fig.add_trace(
+                        go.Scatter(
+                            x=np.arange(1, len(hist) + 1),
+                            y=hist,
+                            mode="lines",
+                            name=nome
+                        )
+                    )
+
+            fig.add_hline(
+                y=float(dados["tolerancia"]),
+                line_dash="dash",
+                annotation_text=(
+                    f"Tolerância = {dados['tolerancia']:.0e}"
+                )
+            )
+
+            fig.update_layout(
+                xaxis_title="Iteração",
+                yaxis_title="Mismatch máximo de potência (p.u.)",
+                yaxis_type="log",
+                height=450,
+                legend_title="Método",
+                margin=dict(l=20, r=20, t=35, b=20)
+            )
+
+            st.plotly_chart(fig, use_container_width=True)
+
+        # ==================================================
+        # 3. TENSÕES FINAIS POR BARRA
+        # ==================================================
+        if estados_validos:
+            st.markdown("#### Tensões finais por barra")
+
+            linhas_tensoes = []
+
+            for nome, estado in estados_validos.items():
+                V = estado["V"]
+                P = estado["P"]
+                Q = estado["Q"]
+
+                for i in range(N_BARRAS):
+                    linhas_tensoes.append({
+                        "Método": nome,
+                        "Barra": i + 1,
+                        "Tipo": TIPOS_BARRA[i],
+                        "|V| (p.u.)": abs(V[i]),
+                        "Ângulo (°)": np.degrees(
+                            np.angle(V[i])
+                        ),
+                        "P calculada (p.u.)": P[i],
+                        "Q calculada (p.u.)": Q[i],
+                    })
+
+            df_tensoes = pd.DataFrame(linhas_tensoes)
+
+            st.dataframe(
+                df_tensoes.style.format({
+                    "|V| (p.u.)": "{:.5f}",
+                    "Ângulo (°)": "{:.4f}",
+                    "P calculada (p.u.)": "{:.5f}",
+                    "Q calculada (p.u.)": "{:.5f}",
+                }),
+                use_container_width=True,
+                hide_index=True,
+                height=450
+            )
+
+            st.download_button(
+                "Baixar tensões finais por barra (CSV)",
+                df_tensoes.to_csv(index=False).encode("utf-8-sig"),
+                "tensoes_finais_por_barra.csv",
+                "text/csv",
+                key="download_tensoes_comparacao"
+            )
+
+        # ==================================================
+        # 4. ERROS DE EXECUÇÃO
+        # ==================================================
         for nome, estado in dados["estados"].items():
             if "erro_execucao" in estado:
-                st.error(f"{nome}: {estado['erro_execucao']}")
+                st.error(
+                    f"{nome}: {estado['erro_execucao']}"
+                )
 
 st.divider()
