@@ -468,4 +468,49 @@ with tab_resultados:
                     f"{nome}: {estado['erro_execucao']}"
                 )
 
+                # ===== VERIFICAÇÃO ENTRE MÉTODOS =====
+        if len(estados_validos) > 1:
+            nomes = list(estados_validos)
+            ref = estados_validos[nomes[0]]["V"]
+            for nome in nomes[1:]:
+                dif = float(np.max(np.abs(estados_validos[nome]["V"] - ref)))
+                if dif > 1e-3:
+                    st.warning(
+                        f"{nome} convergiu para uma solução diferente de {nomes[0]} "
+                        f"(diferença máxima de tensão = {dif:.3f} p.u.). Isso indica "
+                        "outra raiz das equações, causada pelo chute inicial. "
+                        "Teste o cenário A."
+                    )
+                else:
+                    st.success(f"{nome} e {nomes[0]} chegaram à mesma solução "
+                               f"(diferença máxima = {dif:.1e} p.u.).")
+
+            st.markdown("#### Comparação lado a lado")
+            comp = {"Barra": list(range(1, N_BARRAS + 1))}
+            for nome in nomes:
+                comp[f"|V| {nome}"] = np.abs(estados_validos[nome]["V"])
+                comp[f"δ(°) {nome}"] = np.degrees(np.angle(estados_validos[nome]["V"]))
+            st.dataframe(pd.DataFrame(comp).style.format(
+                {c: "{:.5f}" for c in comp if c != "Barra"}),
+                use_container_width=True, hide_index=True)
+
+        # ===== FLUXOS NAS LINHAS =====
+        if estados_validos:
+            st.markdown("#### Fluxos de potência nas linhas")
+            metodo_fluxo = st.selectbox("Método usado para os fluxos", list(estados_validos))
+            fl = pd.DataFrame(calcular_fluxos_linhas(estados_validos[metodo_fluxo]["V"]))
+            fl = fl.rename(columns={
+                "de": "De", "para": "Para",
+                "P_de_para_pu": "P De→Para", "Q_de_para_pu": "Q De→Para",
+                "P_para_de_pu": "P Para→De", "Q_para_de_pu": "Q Para→De",
+                "P_perdas_pu": "Perda P", "Q_soma_pu": "Soma Q (perda − carga)",
+            })
+            st.dataframe(fl.style.format({c: "{:.5f}" for c in fl.columns if c not in ("De", "Para")}),
+                         use_container_width=True, hide_index=True)
+            P_ger = estados_validos[metodo_fluxo]["P"]
+            c1, c2, c3 = st.columns(3)
+            c1.metric("ΣP gerada − ΣP carga (perdas)", f"{P_ger.sum():.2e} p.u.")
+            c2.metric("Soma das perdas P nas linhas", f"{fl['Perda P'].sum():.2e} p.u.")
+            c3.metric("P da slack", f"{P_ger[0]:.4f} p.u.")        
+
 st.divider()
