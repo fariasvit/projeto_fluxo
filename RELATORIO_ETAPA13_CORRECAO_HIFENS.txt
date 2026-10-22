@@ -1,7 +1,0 @@
-ETAPA 13 — CORREÇÃO DEFINITIVA DOS HÍFENS
-
-A formatação anterior dependia do pandas Styler para representar valores ausentes.
-Dependendo da versão e do renderizador do Streamlit, a tabela ainda podia mostrar
-None ou nan. A tabela agora converte os valores ausentes em texto '-' antes de
-chamar st.dataframe. Assim, o hífen já faz parte do dado exibido, e não depende
-da formatação visual. Fórmulas P_i = P_g,i - P_d,i e Q_i = Q_g,i - Q_d,i mantidas.
