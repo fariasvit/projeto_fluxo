@@ -1,8 +1,0 @@
-ETAPA 11 — TABELA DE BARRAS FIEL AO ENUNCIADO
-
-A aba Sistema apresenta geração ativa Pg, geração reativa Qg, carga ativa Pd,
-carga reativa Qd, tensão e ângulo especificados, além das potências líquidas
-P e Q utilizadas pelo algoritmo. Campos não especificados aparecem como traços.
-A convenção numérica continua P=Pg-Pd e Q=Qg-Qd. Na barra Slack, P e Q são
-calculadas pela solução; nas barras PV, Q é calculada pela solução.
-A lógica dos algoritmos numéricos não foi alterada.
